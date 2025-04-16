@@ -23,7 +23,6 @@ public class NovylenAtlasUtil implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		AutoConfig.register(UserConfig.class, JanksonConfigSerializer::new);
-		UserConfig config = AutoConfig.getConfigHolder(UserConfig.class).getConfig();
 
 		// atlas-util request create command
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
@@ -31,14 +30,16 @@ public class NovylenAtlasUtil implements ModInitializer {
 					.then(ClientCommandManager.literal("request")
 						.then(ClientCommandManager.literal("create")
 							.then(ClientCommandManager.argument("name", StringArgumentType.string())
+							.then(ClientCommandManager.argument("dial", StringArgumentType.string())
 							.then(ClientCommandManager.argument("type", StringArgumentType.word())
 							.then(ClientCommandManager.argument("info", StringArgumentType.string())
+							.then(ClientCommandManager.argument("reason", StringArgumentType.string())
 							.executes(commandContext -> {
 								if (!ATLAS_MOD_UTILS.CreateRequest(commandContext))
 									return 0;
 
 								return 1;
-					})))))));
+					})))))))));
 		});
 
 		// atlas-util request review command

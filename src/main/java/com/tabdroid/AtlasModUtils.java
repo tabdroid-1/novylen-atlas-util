@@ -1,13 +1,21 @@
 package com.tabdroid;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.tabdroid.AtlasCommon.*;
 
 import com.mojang.brigadier.context.CommandContext;
+import me.shedaniel.autoconfig.AutoConfig;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import static com.tabdroid.AtlasCommon.GetHttpClient;
 import static com.tabdroid.AtlasCommon.isInNovylenSMP;
 
 
@@ -27,10 +35,12 @@ public class AtlasModUtils {
 
         BlockPos position = context.getSource().getClient().player.getBlockPos();
         String name = StringArgumentType.getString(context, "name");
+        String dial = StringArgumentType.getString(context, "dial");
         PointType type = new PointType(StringArgumentType.getString(context, "type"));
         String info = StringArgumentType.getString(context, "info");
+        String reason = StringArgumentType.getString(context, "reason");
 
-        if (!type.isValid())
+        if (!type.IsValid())
         {
             context.getSource().sendFeedback(Text.literal("[Atlas Util] Invalid point type."));
             return false;
@@ -38,8 +48,10 @@ public class AtlasModUtils {
 
 
         m_RequestData.m_Name = name;
+        m_RequestData.m_Dial = dial;
         m_RequestData.m_Type = type;
         m_RequestData.m_Info = info;
+        m_RequestData.m_Reason = reason;
         m_RequestData.m_Position = position;
         m_RequestData.m_ReviewedRequest = false;
         m_RequestData.m_ConfirmedRequest = false;
@@ -74,8 +86,10 @@ public class AtlasModUtils {
         context.getSource().sendFeedback(Text.literal("[Atlas Util] -----------------------------------------------------"));
         context.getSource().sendFeedback(Text.literal("\nRequest Review:"));
         context.getSource().sendFeedback(Text.literal("    Name: " + m_RequestData.m_Name));
-        context.getSource().sendFeedback(Text.literal("    Type: " + m_RequestData.m_Type.toString()));
+        context.getSource().sendFeedback(Text.literal("    Dial: " + m_RequestData.m_Dial));
+        context.getSource().sendFeedback(Text.literal("    Type: " + m_RequestData.toString()));
         context.getSource().sendFeedback(Text.literal("    Info: " + m_RequestData.m_Info));
+        context.getSource().sendFeedback(Text.literal("    Reason: " + m_RequestData.m_Reason));
         context.getSource().sendFeedback(Text.literal("    Position: " + m_RequestData.m_Position.getX() + " " + m_RequestData.m_Position.getY() + " " + m_RequestData.m_Position.getZ()));
         context.getSource().sendFeedback(Text.literal("[Atlas Util] To confirm request, call /atlas-util confirm-request."));
 
@@ -103,7 +117,49 @@ public class AtlasModUtils {
             return false;
         }
 
-        // TODO: Actually send the request.
+        UserConfig config = AutoConfig.getConfigHolder(UserConfig.class).getConfig();
+
+        if (config.user_api == null)
+        {
+            context.getSource().sendFeedback(Text.literal("[Atlas Util] Api key is null. Please add your api key to mod config."));
+            return false;
+        }
+
+        RequestPacket request_packet = new RequestPacket();
+        request_packet.name = m_RequestData.m_Name;
+        request_packet.dial = "todo";
+        request_packet.x = m_RequestData.m_Position.getX();
+        request_packet.z = m_RequestData.m_Position.getZ();
+        request_packet.marker = m_RequestData.m_Type.ToMarkerInteger();
+        request_packet.info = m_RequestData.m_Info;
+        request_packet.reason = "todo, testing";
+        request_packet.source = "novylen-atlas-util-fabric";
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json;
+
+        try {
+            json = mapper.writeValueAsString(request_packet);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://novy.pigwin.eu/admin/api/mcsuggest.php?key=" + config.user_api))
+                .GET()
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        GetHttpClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(HttpResponse::body)
+                .thenAccept(response -> {
+                })
+                .exceptionally(e -> {
+                    e.printStackTrace();
+                    return null;
+                });
+
         context.getSource().sendFeedback(Text.literal("[Atlas Util] Request has been sent."));
 
         m_RequestData.Clear();

@@ -21,17 +21,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 
+import static com.tabdroid.AtlasCommon.GetHttpClient;
 import static com.tabdroid.AtlasCommon.isInNovylenSMP;
 
 
 public class AtlasSearchUtils {
 
-
-    private HttpClient m_Client;
-
     public AtlasSearchUtils()
     {
-        m_Client = HttpClient.newHttpClient();
     }
 
     public void QueryPOIs(CommandContext<FabricClientCommandSource> context) {
@@ -46,7 +43,7 @@ public class AtlasSearchUtils {
                 .GET()
                 .build();
 
-        m_Client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        GetHttpClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenAccept(response -> {
                     ObjectMapper mapper = new ObjectMapper();
@@ -84,7 +81,7 @@ public class AtlasSearchUtils {
                 .GET()
                 .build();
 
-        m_Client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        GetHttpClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenAccept(response -> {
                     ObjectMapper mapper = new ObjectMapper();

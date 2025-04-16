@@ -6,16 +6,26 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
+import java.net.http.HttpClient;
 import java.util.List;
 
 public class AtlasCommon {
+
+    private static HttpClient m_Client = HttpClient.newHttpClient();
+
+    public static HttpClient GetHttpClient() {
+        return m_Client;
+    }
+
     public static class ModRequestData {
         public boolean m_ActiveRequest = false;
         public boolean m_ReviewedRequest = false;
         public boolean m_ConfirmedRequest = false;
         public String m_Name = "null";
+        public String m_Dial = "null";
         public PointType m_Type = new PointType();
         public String m_Info = "null";
+        public String m_Reason = "null";
         public BlockPos m_Position = new BlockPos(0, 0, 0);
 
         public void Clear()
@@ -24,8 +34,10 @@ public class AtlasCommon {
             m_ReviewedRequest = false;
             m_ConfirmedRequest = false;
             m_Name = "null";
+            m_Dial = "null";
             m_Type = new PointType();
             m_Info = "null";
+            m_Reason = "null";
             m_Position = new BlockPos(0, 0, 0);
         }
 
@@ -45,7 +57,9 @@ public class AtlasCommon {
         public boolean IsRequestValid()
         {
             if (m_Name.equals("null")) return false;
-            if (!m_Type.isValid()) return false;
+            if (m_Dial.equals("null")) return false;
+            if (m_Reason.equals("null")) return false;
+            if (!m_Type.IsValid()) return false;
             return !m_Info.equals("null");
         }
 
@@ -79,18 +93,29 @@ public class AtlasCommon {
             };
         }
 
-        public boolean isValid() {
+        public boolean IsValid() {
             return !m_PointTypeEnum.equals(PointTypeEnum.Error);
         }
 
-        public static String toString(PointType type)
+        public String ToString()
         {
-            return switch (type.m_PointTypeEnum) {
+            return switch (m_PointTypeEnum) {
                 case PointTypeEnum.Build -> "Build";
                 case PointTypeEnum.Farm -> "Farm";
                 case PointTypeEnum.Shop -> "Shop";
                 case PointTypeEnum.Station -> "Station";
                 default -> "Error";
+            };
+        }
+
+        public Integer ToMarkerInteger()
+        {
+            return switch (m_PointTypeEnum) {
+                case PointTypeEnum.Build -> 1;
+                case PointTypeEnum.Farm -> 2;
+                case PointTypeEnum.Shop -> 3;
+                case PointTypeEnum.Station -> 5;
+                default -> 0;
             };
         }
     }
@@ -160,6 +185,17 @@ public class AtlasCommon {
             public String markerName;
             public String info;
         }
+    }
+
+    public static class RequestPacket {
+        public String name;
+        public String dial;
+        public int x;
+        public int z;
+        public int marker;
+        public String info;
+        public String reason;
+        public String source;
     }
 
 }
