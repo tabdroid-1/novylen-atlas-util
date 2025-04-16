@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "novylen-atlas-util",
+	"version": "${version}",
+	"name": "Novylen Atlas Util",
+	"description": "Simple atlas utility for moderators.",
+	"authors": [
+		"tabdroid"
+	],
+	"contact": {
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/novylen-atlas-util/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.tabdroid.NovylenAtlasUtil"
+		],
+		"modmenu": [
+			"com.tabdroid.UserConfigModMenu"
+		]
+	},
+	"mixins": [
+		"novylen-atlas-util.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.12",
+		"minecraft": "~1.21.4",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
