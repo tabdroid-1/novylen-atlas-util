@@ -87,7 +87,7 @@ public class AtlasModUtils {
         context.getSource().sendFeedback(Text.literal("\nRequest Review:"));
         context.getSource().sendFeedback(Text.literal("    Name: " + m_RequestData.m_Name));
         context.getSource().sendFeedback(Text.literal("    Dial: " + m_RequestData.m_Dial));
-        context.getSource().sendFeedback(Text.literal("    Type: " + m_RequestData.toString()));
+        context.getSource().sendFeedback(Text.literal("    Type: " + m_RequestData.m_Type.ToString()));
         context.getSource().sendFeedback(Text.literal("    Info: " + m_RequestData.m_Info));
         context.getSource().sendFeedback(Text.literal("    Reason: " + m_RequestData.m_Reason));
         context.getSource().sendFeedback(Text.literal("    Position: " + m_RequestData.m_Position.getX() + " " + m_RequestData.m_Position.getY() + " " + m_RequestData.m_Position.getZ()));
@@ -127,12 +127,12 @@ public class AtlasModUtils {
 
         RequestPacket request_packet = new RequestPacket();
         request_packet.name = m_RequestData.m_Name;
-        request_packet.dial = "todo";
+        request_packet.dial = m_RequestData.m_Dial;
         request_packet.x = m_RequestData.m_Position.getX();
         request_packet.z = m_RequestData.m_Position.getZ();
         request_packet.marker = m_RequestData.m_Type.ToMarkerInteger();
         request_packet.info = m_RequestData.m_Info;
-        request_packet.reason = "todo, testing";
+        request_packet.reason = m_RequestData.m_Reason;
         request_packet.source = "novylen-atlas-util-fabric";
 
         ObjectMapper mapper = new ObjectMapper();
@@ -154,13 +154,18 @@ public class AtlasModUtils {
         GetHttpClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenAccept(response -> {
+                    if (response.equals("{\"status\":\"ok\"}"))
+                        context.getSource().sendFeedback(Text.literal("[Atlas Util] Request has been sent.  " +  response));
+                    else
+                        context.getSource().sendFeedback(Text.literal("[Atlas Util] Failed to send request." + response));
+
                 })
                 .exceptionally(e -> {
+                    context.getSource().sendFeedback(Text.literal("[Atlas Util] Failed to send request."));
                     e.printStackTrace();
                     return null;
                 });
 
-        context.getSource().sendFeedback(Text.literal("[Atlas Util] Request has been sent."));
 
         m_RequestData.Clear();
         return true;
