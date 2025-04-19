@@ -5,6 +5,6 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
 @Config(name = "novylen_atlas_util")
-class UserConfig implements ConfigData {
-    String user_api = "";
+public class UserConfig implements ConfigData {
+    public String user_api = "";
 }

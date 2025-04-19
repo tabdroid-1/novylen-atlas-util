@@ -1,9 +1,10 @@
 package com.tabdroid;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.tabdroid.AtlasCommon.*;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.tabdroid.common.AtlasMarker.Markers;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 
@@ -17,12 +18,14 @@ import org.slf4j.LoggerFactory;
 public class NovylenAtlasUtil implements ModInitializer {
 	public static final String MOD_ID = "novylen-atlas-util";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	public static AtlasModUtils  ATLAS_MOD_UTILS = new AtlasModUtils();
+	public static AtlasSuggestUtils ATLAS_SUGGEST_UTILS = new AtlasSuggestUtils();
 	public static AtlasSearchUtils  ATLAS_SEARCH_UTILS = new AtlasSearchUtils();
 
 	@Override
 	public void onInitialize() {
 		AutoConfig.register(UserConfig.class, JanksonConfigSerializer::new);
+
+		Markers.FetchMarkers(LOGGER);
 
 		// atlas-util request create command
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
@@ -35,56 +38,81 @@ public class NovylenAtlasUtil implements ModInitializer {
 							.then(ClientCommandManager.argument("info", StringArgumentType.string())
 							.then(ClientCommandManager.argument("reason", StringArgumentType.string())
 							.executes(commandContext -> {
-								if (!ATLAS_MOD_UTILS.CreateRequest(commandContext))
+								if (!ATLAS_SUGGEST_UTILS.CreateSuggestion(commandContext))
 									return 0;
 
 								return 1;
 					})))))))));
 		});
 
-		// atlas-util request review command
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
 			dispatcher.register(ClientCommandManager.literal("atlas-util")
 					.then(ClientCommandManager.literal("request")
-					.then(ClientCommandManager.literal("review")
-					.executes(commandContext -> {
-						ATLAS_MOD_UTILS.ReviewRequest(commandContext);
-						return 1;
-					}))));
+							.then(ClientCommandManager.literal("get")
+									// reviewed then id
+									.then(ClientCommandManager.argument("reviewed", BoolArgumentType.bool())
+											.then(ClientCommandManager.argument("id", IntegerArgumentType.integer())
+													.executes(commandContext -> {
+														if (!ATLAS_SUGGEST_UTILS.GetSuggestions(commandContext, true, true))
+															return 0;
+
+														return 1;
+													})
+											)
+											.executes(commandContext -> {
+												if (!ATLAS_SUGGEST_UTILS.GetSuggestions(commandContext, true, false))
+													return 0;
+
+												return 1;
+											})
+									)
+									// id then reviewed (optional)
+									.then(ClientCommandManager.argument("id", IntegerArgumentType.integer())
+											.then(ClientCommandManager.argument("reviewed", BoolArgumentType.bool())
+													.executes(commandContext -> {
+														if (!ATLAS_SUGGEST_UTILS.GetSuggestions(commandContext, true, true))
+															return 0;
+
+														return 1;
+													})
+											)
+											.executes(commandContext -> {
+												if (!ATLAS_SUGGEST_UTILS.GetSuggestions(commandContext, false, true))
+													return 0;
+
+												return 1;
+											})
+									)
+									// No args
+									.executes(commandContext -> {
+										if (!ATLAS_SUGGEST_UTILS.GetSuggestions(commandContext, false, false))
+											return 0;
+
+										return 1;
+									})
+							)
+					)
+			);
 		});
 
-		// atlas-util request confirm command
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
 			dispatcher.register(ClientCommandManager.literal("atlas-util")
 					.then(ClientCommandManager.literal("request")
-					.then(ClientCommandManager.literal("confirm")
-					.executes(commandContext -> {
-						ATLAS_MOD_UTILS.ConfirmRequest(commandContext);
-						return 1;
-					}))));
+							.then(ClientCommandManager.literal("edit")
+									.then(ClientCommandManager.argument("id", IntegerArgumentType.integer())
+									.then(ClientCommandManager.argument("name", StringArgumentType.string())
+									.then(ClientCommandManager.argument("dial", StringArgumentType.string())
+									.then(ClientCommandManager.argument("type", StringArgumentType.word())
+									.then(ClientCommandManager.argument("info", StringArgumentType.string())
+									.then(ClientCommandManager.argument("reason", StringArgumentType.string())
+											.executes(commandContext -> {
+												if (!ATLAS_SUGGEST_UTILS.EditSuggestion(commandContext))
+													return 0;
+
+												return 1;
+											}))))))))));
 		});
 
-		// atlas-util request send command
-		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-			dispatcher.register(ClientCommandManager.literal("atlas-util")
-					.then(ClientCommandManager.literal("request")
-					.then(ClientCommandManager.literal("send")
-					.executes(commandContext -> {
-						ATLAS_MOD_UTILS.SendRequest(commandContext);
-						return 1;
-					}))));
-		});
-
-		// atlas-util request clear command
-		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-			dispatcher.register(ClientCommandManager.literal("atlas-util")
-					.then(ClientCommandManager.literal("request")
-					.then(ClientCommandManager.literal("clear")
-					.executes(commandContext -> {
-						ATLAS_MOD_UTILS.ClearRequest(commandContext);
-						return 1;
-					}))));
-		});
 
 		// atlas-util search nearby <radius>
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {

@@ -3,7 +3,7 @@
 	"id": "novylen-atlas-util",
 	"version": "${version}",
 	"name": "Novylen Atlas Util",
-	"description": "Simple atlas utility for moderators.",
+	"description": "Simple atlas utility for Novylen.",
 	"authors": [
 		"tabdroid"
 	],
@@ -25,11 +25,11 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.16.12",
-		"minecraft": "~1.21.4",
+		"minecraft": ">=1.21.4",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"cloth-config": "*"
 	},
 	"suggests": {
-		"another-mod": "*"
 	}
 }

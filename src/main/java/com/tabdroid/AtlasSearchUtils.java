@@ -1,28 +1,21 @@
 package com.tabdroid;
 
-import com.tabdroid.AtlasCommon.*;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Jankson;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.text.Text;
-import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.minecraft.util.math.BlockPos;
 
 
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
 
-import static com.tabdroid.AtlasCommon.GetHttpClient;
-import static com.tabdroid.AtlasCommon.isInNovylenSMP;
+import static com.tabdroid.common.AtlasPackets.*;
+import static com.tabdroid.common.AtlasCommon.*;
 
 
 public class AtlasSearchUtils {
@@ -33,7 +26,7 @@ public class AtlasSearchUtils {
 
     public void QueryPOIs(CommandContext<FabricClientCommandSource> context) {
 
-        if (!isInNovylenSMP(context))
+        if (!IsInNovylenSMP(context))
             return;
 
         String query = StringArgumentType.getString(context, "query");
@@ -54,7 +47,7 @@ public class AtlasSearchUtils {
                         context.getSource().sendFeedback(Text.literal("[Atlas Util] Found POIs:"));
                         for (QuerySearchApiResponse.DataEntry entry : parsed_response.data) {
                             context.getSource().sendFeedback(Text.literal(
-                                    "Name: '" + entry.name + "' Dial(s): '" + entry.dial + "' Position: " + entry.x + " / " + entry.z
+                                    "Name: '" + entry.name + "' Dial(s): '" + entry.dial + "' Type: " + entry.markerName + " Position: " + entry.x + " / " + entry.z
                             ));
                         }
 
@@ -70,7 +63,7 @@ public class AtlasSearchUtils {
 
     public void GetPOIsNearBy(CommandContext<FabricClientCommandSource> context) {
 
-        if (!isInNovylenSMP(context))
+        if (!IsInNovylenSMP(context))
             return;
 
         BlockPos position = context.getSource().getClient().player.getBlockPos();
@@ -91,7 +84,7 @@ public class AtlasSearchUtils {
                         context.getSource().sendFeedback(Text.literal("[Atlas Util] Near POIs:"));
                         for (NearbySearchApiResponse.DataEntry entry : parsed_response.data) {
                             context.getSource().sendFeedback(Text.literal(
-                                    "Name: '" + entry.name + "' Dial(s): '" + entry.dial + "' Position: " + entry.x + " / " + entry.z
+                                    "Name: '" + entry.name + "' Dial(s): '" + entry.dial + "' Type: " + entry.markerName + " Position: " + entry.x + " / " + entry.z
                             ));
                         }
 
